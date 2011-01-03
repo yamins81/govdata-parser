@@ -1467,7 +1467,7 @@ def get_intl_transactions_files(maindir):
     wget('http://www.bea.gov/scb/pdf/2010/02%20February/0210_guide.pdf',maindir + '__FILES__/international_transactions_guide.pdf')
 
 ITRANS_NAME = 'BEA_InternationalTransactions'
-ITRANS_PARSER = govdata.core.GovParser(ITrans_NAME,
+ITRANS_PARSER = govdata.core.GovParser(ITRANS_NAME,
                                        None,
                                        downloader = [(MakeDirs,'initialize'),
                                                      (get_intl_transactions,'get_transactions'),
