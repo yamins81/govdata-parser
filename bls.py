@@ -10,11 +10,13 @@ import numpy as np
 from BeautifulSoup import BeautifulSoup,BeautifulStoneSoup
 from starflow.metadata import AttachMetaData, loadmetadata
 from starflow.protocols import activate, actualize
-from starflow.utils import MakeDir,Contents,listdir,wget,PathExists, strongcopy,uniqify,ListUnion,Rename, delete, MakeDirs, is_string_like
+from starflow.utils import MakeDir,Contents,listdir,PathExists, strongcopy,uniqify,ListUnion,Rename, delete, MakeDirs, is_string_like
 
 import utils.htools as htools
 import govdata.core    
 import pymongo as pm
+
+from utils.basic import wget
 
 root = '../Data/OpenGovernment/BLS/'
 protocol_root = '../generated_code/OpenGovernment/BLS/'
