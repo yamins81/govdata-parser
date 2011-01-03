@@ -528,7 +528,7 @@ def MakeBLS_Resource(creates = protocol_root + 'make_resources.py'):
 
 PARSER_NAMES = ['ap','bd','cw','li','pc','wp','ce','sm','jt','la']
 
-PARSER_DICT = dict([(name,govdata.core.GovParser('BLS_' + name,bls_parser,downloader = bls_downloader,downloaderArgs = (name,))) for name in PARSER_NAMES])
+PARSER_DICT = dict([(name,govdata.core.GovParser('BLS_' + name,bls_parser,downloader = bls_downloader,downloadArgs = (name,))) for name in PARSER_NAMES])
 
 LU_PARSER = govdata.core.GovParser('BLS_lu',bls_parser,downloader = bls_downloader,downloadArgs = ('lu',),parserKwargs = {'sliceCols':['Indy','Occupation','Education', 'Ages', 'Race', 'Orig', 'Sexs', 'Location.X']}) 
     
