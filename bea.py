@@ -9,7 +9,7 @@ import pymongo as pm
 
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, NavigableString
 from mechanize import Browser
-from starflow.utils import MakeDir, Contents, listdir, IsDir, uniqify, PathExists,RecursiveFileList, ListUnion, MakeDirs,delete,strongcopy
+from starflow.utils import activate, MakeDir, Contents, listdir, IsDir, uniqify, PathExists,RecursiveFileList, ListUnion, MakeDirs,delete,strongcopy
 
 import govdata.core
 import utils.htools as htools
