@@ -357,7 +357,6 @@ def NEA_preparser2(inpath,filepath,metadatapath,L = None):
     
     Category = AllMeta.pop('Category')
 
-    AllMeta['source'] = [('agency',{'name':'Department of Commerce','shortName':'DOC'}),('subagency',{'name':'Bureau of Economic Analysis','shortName':'BEA'}),('program',{'shortName':'REA','name':'National Economic Accounts'}), ('dataset',{'shortName':'NIPA','name':Category})]
     AllMeta['topicHierarchy'] = ('agency','subagency','program','dataset','Section','Table')
     AllMeta['uniqueIndexes'] = ['TableNo','Line']
     ColGroups['Topics'].sort()
@@ -545,7 +544,6 @@ def FAT_preparser2(maindir):
                 
     Category = AllMeta['Category']
     AllMeta.pop('Category')
-    AllMeta['source'] = [('agency',{'name':'Department of Commerce','shortName':'DOC'}),('subagency',{'name':'Bureau of Economic Analysis','shortName':'BEA'}),('program',{'shortName':'NEA','name':'National Economic Accounts'}), ('dataset',{'shortName':'FAT','name':Category})]
     AllMeta['topicHierarchy'] =  ('agency','subagency','program','dataset','Section','Table')
     AllMeta['uniqueIndexes'] = ['TableNo','Line']
     ColGroups['Topics'].sort()
@@ -880,7 +878,6 @@ def RegionalGDP_Preparse2(maindir):
     IH = [tuple(ColGroups['IndustryHierarchy'][:i]) for i in range(1,len(ColGroups['IndustryHierarchy']) + 1)]
 
     AllMeta = {}
-    AllMeta['source'] = [('agency',{'name':'Department of Commerce','shortName':'DOC'}),('subagency',{'name':'Bureau of Economic Analysis','shortName':'BEA'}),('program',{'shortName':'REA','name':'Regional Economic Accounts'}), ('dataset',{'shortName':'RegGDP','name':'Regional GDP Data'})]
     AllMeta['topicHierarchy']  = ('agency','subagency','program','dataset','Category')
     AllMeta['uniqueIndexes'] = ['Location','IndustryCode','ComponentCode','IndClass']
     ColGroups['spaceColumns'] = ['Location']
@@ -942,7 +939,6 @@ def State_PreParse1(maindir):
     for mm in M:
         FIPS,Region,IC,file = mm['FIPS'],mm['Region'],mm['IC'],mm['File']
 
-  
         f = sourcedir + file
         savepath = target + file[:-4] + '.tsv'
         [X, header, footer, keywords] = BEA_Parser(f, headerlines=1, FootnoteSplitter='\\', FootnotesFunction=GetFootnotes2, CategoryColumn='Industry')
@@ -1389,8 +1385,7 @@ def PI_metadata(maindir):
     
     Metadata['LA'] = {'Title':'Local Area Personal Income', 'Description' : 'Local Area Personal Income data for all US counties, from the <a href="http://www.bea.gov/regional/reis/default.cfm?selTable=Single%20Line">Local Area Personal Income "Single Line of data for all counties"</a> data set under the <a href="http://www.bea.gov/regional/index.htm">Regional Economic Accounts</a> section of the <a href="http://www.bea.gov/">Bureau of Economic Accounts (BEA)</a> website.  For more information on the industry classifications, see the BEA web pages on  <a href="http://www.bea.gov/regional/definitions/nextpage.cfm?key=NAICS">NAICS (1997-2008)</a> and <a href="http://www.bea.gov/regional/definitions/nextpage.cfm?key=SIC">SIC (1963-1997)</a>.  With the exception of per capita estimates, all dollar estimates are in thousands of dollars. All employment estimates are number of jobs. All dollar estimates are in current dollars.'}
 
-    AllMeta = {}
-    AllMeta['source'] = [('agency',{'name':'Department of Commerce','shortName':'DOC'}),('subagency',{'name':'Bureau of Economic Analysis','shortName':'BEA'}),('program',{'shortName':'REA','name':'Regional Economic Accounts'}), ('dataset',{'shortName':'PI','name':'Personal Income'})]
+    AllMeta = {} 
     AllMeta['topicHierarchy']  = ('Agency','Subagency','Dataset','Category','Subcategory','SubjectHierarchy')
     AllMeta['uniqueIndexes'] = ['Location','Table','LineCode']
     AllMeta['columnGroups'] = {'SpaceColumns' : ['Location'],'SubjectHierarchy':['Subject Level_' + str(i) for i in range(1,8)]}
@@ -1932,9 +1927,7 @@ class ii_parser(govdata.core.DataIterator):
         self.tag_names = dict(zip(tags,['US Investment Abroad','US Financials Abroad','Foreign Direct Investment in US','Foreign Financials in US']))
         
         iCols = ['Division','Entity','Series','Aggregation','Location','USState','Industry']
-        
-        D['source'] = [('agency',{'name':'Department of Commerce','shortName':'DOC'}),('subagency',{'name':'Bureau of Economic Analysis','shortName':'BEA'}),('program',{'shortName':'IEA','name':'International Economic Accounts'}), ('dataset',{'shortName':'OMC','name':'Operations of Multinational Companies'})]
-               
+                       
         D['dateFormat'] = 'YYYY'
         D['columnGroups'] = {'timeColNames':[],'labelColumns':iCols,'spaceColumns':['USState','Location']}
                

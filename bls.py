@@ -9,50 +9,17 @@ import numpy as np
 
 from BeautifulSoup import BeautifulSoup,BeautifulStoneSoup
 from starflow.metadata import AttachMetaData, loadmetadata
-from starflow.protocols import activate, actualize
-from starflow.utils import MakeDir,Contents,listdir,PathExists, strongcopy,uniqify,ListUnion,Rename, delete, MakeDirs, is_string_like
+from starflow.protocols import actualize
+from starflow.utils import activate, MakeDir,Contents,listdir,PathExists, strongcopy,uniqify,ListUnion,Rename, delete, MakeDirs, is_string_like
 
-import utils.htools as htools
 import govdata.core    
 import pymongo as pm
 
 from utils.basic import wget
 
-root = '../Data/OpenGovernment/BLS/'
-protocol_root = '../generated_code/OpenGovernment/BLS/'
+resource_root = '../parsers/bls_resources/'
 
 MAIN_SPLITS = ['cu', 'cw', 'su', 'ap', 'li', 'pc', 'wp', 'ei', 'ce', 'sm', 'jt', 'bd', 'oe', 'lu', 'la', 'ml', 'nw', 'ci', 'cm', 'eb', 'ws', 'le', 'cx', 'pr', 'mp', 'ip', 'in', 'fi', 'ch', 'ii']
-
-def BLS_mainparse1(page,x):
-    Soup = BeautifulSoup(open(page),convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-    c1 = lambda x : x.name == 'h1' and 'id' in dict(x.attrs).keys()
-    c2 = lambda x : x.name == 'td' and 'colspan' in dict(x.attrs).keys() and dict(x.attrs)['colspan'] == "8"
-    c3 = lambda x : x.name == 'tr' and 'class' in dict(x.findParent().findParent().attrs).keys() and dict(x.findParent().findParent().attrs)['class'] == 'matrix-table' and x.findAll('td') and x.findAll('td')[-1].findAll('a') and 'ftp://' in str(x.findAll('td')[-1].findAll('a')[0])
-    p1 = Contents
-    p2 = Contents
-    p3 = lambda x : (Contents(x.findAll('td')[0]).replace('\t','').strip().replace('\r\n',': '),str(dict(x.findAll('td')[-1].findAll('a')[0].attrs)['href']).strip(' /') + '/')
-    N = ['Level1','Level2',['Level3','URL']]
-    T = htools.MakeTable(Soup,[c1,c2,c3],[p1,p2,p3],N)
-    T.coloring['Categories']=['Level1','Level2','Level3']
-    return T
-    
-    
-def WgetMultiple(link, fname, maxtries=10):
-    link = link if is_string_like(link) else link['URL']
-    opstring = '--user-agent="Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.7) Gecko/20091221 Firefox/3.5.7"'
-    time.sleep(5)
-    for i in range(maxtries):
-        wget(link, fname, opstring)
-        F = open(fname,'r').read().strip()
-        if F.startswith('<!DOCTYPE HTML'):
-            return
-        else:
-            print 'download of ' + link + ' failed: ' + F[:20]
-            time.sleep(15)
-            
-    print 'download of ' + link + ' failed after ' + str(maxtries) + ' attempts'
-    return
-
 
 @activate(lambda x : "ftp://ftp.bls.gov/pub/time.series/" + x[1], lambda x : x[0])
 def bls_downloader(download_dir,code):
@@ -215,9 +182,16 @@ def parse_series(datadir,outpath,units=''):
     
 
 @activate(lambda x : tuple([x[1],x[2],x[3]]), lambda x : (x[4],x[5]))
-def makemetadata(code,datadir,outfile1,outfile2,depends_on = (root + 'ProcessedManifest_2_HandAdditions.tsv',)):
-    Z = getcategorydata(code)
+def makemetadata(code,datadir,outfile1,outfile2,depends_on = (resource_root + 'ProcessedManifest_2_HandAdditions.tsv',resource_root + 'Keywords.txt')):
 
+    Z  = {}
+
+    keyword_file = depends_on[1]
+    Y = tb.tabarray(SVfile = keyword_file)[['Code','Keywords']]
+    y = Y[Y['Code'] == code]
+    Z['keywords'] = [x.strip() for x in str(y['Keywords'][0]).split(',')]
+    
+    
     dirl = np.array(listdir(datadir))
     
     pr = lambda x : x.split('!')[-1][:-4]
@@ -268,43 +242,6 @@ def makemetadata(code,datadir,outfile1,outfile2,depends_on = (root + 'ProcessedM
     D.saveSV(outfile2,metadata = True)  
     
 
-
-def getcategorydata(code,depends_on = (root + 'BLS_Hierarchy/Manifest_1.tsv',root + 'Keywords.txt')):
-    
-    manifest,keywords = depends_on
-    
-    X = tb.tabarray(SVfile = manifest)
-    Y = tb.tabarray(SVfile = keywords)[['Code','Keywords']]
-    
-    Codes = np.array([x.split('/')[-2] for x in X['URL']])
-        
-    x = X[Codes == code][0] 
-    topic = str(x['Level1'])
-    subtopic = str(x['Level2'])
-    xx = str(x['Level3'])
-    if len(xx.split(':')) > 1 and '-' in xx.split(':')[1]:
-        Dataset = xx.split(':')[0].strip()      
-        y = ':'.join(xx.split(':')[1:]).strip('() ')
-        ProgramName = y.split('-')[0].strip()
-        ProgramAbbr = y.split('-')[1]
-    elif xx.strip().endswith(')'):
-        Dataset = xx[:xx.find('(')].strip()
-        ProgramAbbr = xx[xx.find('('):].strip(' ()')
-        if not ProgramAbbr.isupper():
-            ProgramAbbr = ''
-        ProgramName = ''
-    else:
-        Dataset = xx
-        ProgramName = ''
-        ProgramAbbr = ''
-    
-    y = Y[Y['Code'] == code]
-    keywords = [x.strip() for x in str(y['Keywords'][0]).split(',')]
-        
-    return {'Topic':topic,'Subtopic':subtopic,'Dataset':Dataset,'ProgramName':ProgramName,'ProgramAbbr':ProgramAbbr,'keywords':keywords,'DatasetCode':code}
-    
-    
-    
 def ParseTexts(textpath,code):
 
     F = open(textpath,'rU').read().strip(' \n*').split('\n')
@@ -426,7 +363,6 @@ class bls_parser(govdata.core.DataIterator):
         M = pickle.load(open(metafile))
         for x in ['contactInfo','description','keywords']:
             D[x] = M[x]
-        D['source'] = [('agency',{'name':'Department of Labor','shortName':'DOL'}),('subagency',{'name':'Bureau of Labor Statistics','shortName':'BLS'}),('topic',{'name':M['Topic']}),('subtopic',{'name':M['Subtopic']}),('program',{'name':M['ProgramName'],'shortName':M['ProgramAbbr']}),('dataset',{'name':M['Dataset'],'shortName':M['DatasetCode']})]
         D['dateFormat'] = 'YYYYhqmm'
 
         M = tb.io.getmetadata(seriesfile)[0]
@@ -515,17 +451,7 @@ class bls_parser(govdata.core.DataIterator):
                         
 
 #actual creators =-=-=-=-=-=-=-=-=
-
-def BLS_Initialize2(creates = protocol_root):
-    MakeDir(creates)
     
-def MakeBLS_Resource(creates = protocol_root + 'make_resources.py'):
-
-    L = [{'Parser':BLS_mainparse1,'Getter':WgetMultiple},None]
-    D = htools.hsuck('http://www.bls.gov/data/', root + 'BLS_Hierarchy/', L, ipath=creates,write=False)
-    actualize(creates,D)
-    
-
 PARSER_NAMES = ['ap','bd','cw','li','pc','wp','ce','sm','jt','la']
 
 PARSER_DICT = dict([(name,govdata.core.GovParser('BLS_' + name,bls_parser,downloader = bls_downloader,downloadArgs = (name,))) for name in PARSER_NAMES])
