@@ -19,6 +19,23 @@ from utils.basic import wget
 
 resource_root = '../parsers/bls_resources/'
 
+def WgetMultiple(link, fname, maxtries=10):
+    link = link if is_string_like(link) else link['URL']
+    opstring = '--user-agent="Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.7) Gecko/20091221 Firefox/3.5.7"'
+    time.sleep(5)
+    for i in range(maxtries):
+        wget(link, fname, opstring)
+        F = open(fname,'r').read().strip()
+        if F.startswith('<!DOCTYPE HTML'):
+            return
+        else:
+            print 'download of ' + link + ' failed: ' + F[:20]
+            time.sleep(15)
+            
+    print 'download of ' + link + ' failed after ' + str(maxtries) + ' attempts'
+    return
+
+
 MAIN_SPLITS = ['cu', 'cw', 'su', 'ap', 'li', 'pc', 'wp', 'ei', 'ce', 'sm', 'jt', 'bd', 'oe', 'lu', 'la', 'ml', 'nw', 'ci', 'cm', 'eb', 'ws', 'le', 'cx', 'pr', 'mp', 'ip', 'in', 'fi', 'ch', 'ii']
 
 @activate(lambda x : "ftp://ftp.bls.gov/pub/time.series/" + x[1], lambda x : x[0])
